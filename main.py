@@ -8,6 +8,7 @@ load_dotenv()
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 
+
 def get_token():
     auth_string = client_id + ":" + client_secret
     auth_bytes = auth_string.encode("utf-8")
@@ -24,8 +25,10 @@ def get_token():
     token = json_result["access_token"]
     return token
 
+
 def get_auth_header(token):
     return {"Authorization": "Bearer " + token}
+
 
 def search_for_artist(token, artist_name):
     url = "https://api.spotify.com/v1/search"
@@ -42,6 +45,7 @@ def search_for_artist(token, artist_name):
 
     return json_result["artists"]["items"][0]
 
+
 def get_songs_by_artist(token, artist_id):
 
     url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?country=US"
@@ -49,6 +53,7 @@ def get_songs_by_artist(token, artist_id):
     result = get(url, headers=headers)
     json_result = json.loads(result.content)
     return json_result["tracks"]
+
 
 token = get_token()
 result = search_for_artist(token, "ACDC")

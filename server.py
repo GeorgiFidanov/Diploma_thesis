@@ -26,14 +26,16 @@ def index():
 @app.route('/login')
 def login():
     session.clear()
-    auth_url = f"{AUTH_URL}?{urlencode({
+    params = {
         'response_type': 'code',
         'client_id': client_id,
         'scope': 'user-library-read user-read-private user-read-email',
         'redirect_uri': REDIRECT_URI,
         'show_dialog': True 
-    })}"
+    }
+    auth_url = f"{AUTH_URL}?{urlencode(params)}"
     return redirect(auth_url)
+
 
 
 @app.route('/callback')
@@ -77,7 +79,7 @@ def refresh_token():
 
 
 @app.route('/playlists')
-def me():
+def playlists():
     if 'access_token' not in session:
         return redirect(url_for('login'))
     
@@ -86,8 +88,11 @@ def me():
     
     response = get(API_BASE_URL + 'me/playlists',
             headers={'Authorization': f"Bearer {session['access_token']}"})
-
     playlists = response.json()
+    # username = playlists['display_name']
+    # email = playlists['email']
+    # profile_picture_url = playlists['images'][0]['url'] if playlists['images'] else None
+
     return jsonify(playlists)
 
 
