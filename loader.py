@@ -19,8 +19,24 @@ database = client.get_database_client(database_name)
 container = database.get_container_client(container_name)
 
 # Query all documents in the container
-query = "SELECT * FROM c"
-items = container.query_items(query=query, enable_cross_partition_query=True)
+# query = "SELECT * FROM c"
+# items = container.query_items(query=query, enable_cross_partition_query=True)
 
-for item in items:
-    print(item)
+def create_user(user_name, email, pfp, playlist):    
+    query = "SELECT * FROM c"
+    items = container.query_items(query=query, enable_cross_partition_query=True)
+    
+    if user_name not in items:
+        user_document = {
+            'context_counter': 0,
+            'user_name': user_name,
+            'email': email,
+            'pfp': pfp,
+            'playlist': playlist
+        }
+    
+    else:
+        for user_name in user_document:
+            context_counter += 1
+
+    

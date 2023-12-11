@@ -95,6 +95,15 @@ def playlists():
 
     return jsonify(playlists)
 
+def get_playlist_tracks(playlist_id):
+    response = get(API_BASE_URL + f'playlists/{playlist_id}/tracks', headers={'Authorization': f"Bearer {session['access_token']}"})
+    # Spotify's limit for songs is 100
+    if response.status_code == 200:
+        playlist_tracks = response.json()
+        return jsonify(playlist_tracks)
+    else:
+        return jsonify({"error": "Unable to fetch playlist tracks"}), response.status_code
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
