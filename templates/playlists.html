@@ -9,14 +9,11 @@
     <h2>Available Playlists</h2>
     
     <form method="post" action="/user">
-        {% for playlist_id, playlist in playlists.items() %}
-            <label>
-                <input type="radio" name="selected_playlist" value="{{ playlist.id }}">
-                {{ playlist.name }}
-            </label><br>
-        {% endfor %}
+        <label for="selected_index">Enter playlist index:</label>
+        <input type="number" name="selected_index" required>
         <br>
         <input type="submit" value="Submit">
     </form>
+    
 </body>
 </html>
