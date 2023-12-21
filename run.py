@@ -1,23 +1,11 @@
-import os
 import subprocess
-import time
+import platform
 
-# Execute the first file (interface.py.py)
-subprocess.run(['python', 'DB_interface.py'], check=True)
 
-# Validate the server file
-svr = ''
-assert os.path.isfile(svr)
+python_command = 'python' if platform.system().lower() == 'windows' else 'python3'
 
-# Start the server in a new terminal window
-subprocess.Popen(['cmd', '/c', 'start', 'python', svr])
+subprocess.Popen(['cmd', '/c', 'start', python_command, 'loader.py'])
 
-# Add a delay if needed to allow the server to start listening
-time.sleep(1)
+subprocess.Popen(['cmd', '/c', 'start', python_command, 'server.py'])
 
-# Validate the clnt file
-clnt = ''
-assert os.path.isfile(clnt)
-
-# Execute the third file (client.py) in a new terminal window
-subprocess.Popen(['cmd', '/c', 'start', 'python', clnt])
+subprocess.Popen(['cmd', '/c', 'start', python_command, 'main.py'])
