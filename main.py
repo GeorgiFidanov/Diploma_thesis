@@ -11,6 +11,7 @@ client_secret = os.getenv("CLIENT_SECRET")
 # This part is for the output from OpenAI
 # Create a session then find the songs and add them into a playlist
 
+
 def get_token():
     auth_string = client_id + ":" + client_secret
     auth_bytes = auth_string.encode("utf-8")

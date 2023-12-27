@@ -82,20 +82,39 @@ def refresh_token():
     return redirect(url_for('playlists'))
 
 
+def fetch_all_user_playlists(access_token):
+    all_playlists = []
+
+    api_url = API_BASE_URL + 'me/playlists'
+    while api_url:
+        response = get(api_url, headers={'Authorization': f"Bearer {access_token}"})
+        data = response.json()
+
+        # Append the playlists from the current response
+        all_playlists.extend(data.get('items', []))
+
+        # Check if there are more playlists to fetch
+        api_url = data.get('next')
+
+    return all_playlists
+
+
 @app.route('/playlists')
 def playlists():
-    global playlists_data  # Declare that you're using the global variable
+    global playlists_data
+
     if 'access_token' not in session:
         return redirect(url_for('login'))
     
     if datetime.now().timestamp() > session['expires_at']:
         return redirect(url_for('refresh-token'))
 
-    playlists_response = get(API_BASE_URL + 'me/playlists',
-                             headers={'Authorization': f"Bearer {session['access_token']}"})
-    playlists_data = playlists_response.json()
-
-    return render_template('playlists.html', playlists=playlists_data)
+    all_playlists = fetch_all_user_playlists(session['access_token'])
+    
+    # Extract relevant information for each playlist
+    filtered_playlists = [{'name': playlist['name'], 'id': playlist['id']} for playlist in all_playlists]
+    playlists_data = filtered_playlists
+    return render_template('playlists.html', filtered_playlists=filtered_playlists)
 
 
 def get_playlist_tracks(playlist_id):
@@ -109,14 +128,51 @@ def get_playlist_tracks(playlist_id):
         return jsonify({"error": "Unable to fetch playlist tracks"}), response.status_code
 
 
+def extract_song_info(song_data):
+    # Extracting relevant information
+    song_info = {
+        "name": song_data.get("name"),
+        "album_name": song_data.get("album", {}).get("name"),
+        "artist_name": song_data.get("artists", [{}])[0].get("name"),
+        "danceability": song_data.get("danceability"),
+        "energy": song_data.get("energy"),
+        "key": song_data.get("key"),
+        "tempo": song_data.get("tempo"),
+        "external_url": song_data.get("external_urls", {}).get("spotify")
+    }
+
+    return song_info
+
+
+def clear_songs_data(playlist_id):
+    songs_data = get_playlist_tracks(playlist_id)
+    filtered_songs = []
+    for song in songs_data:
+        filtered_song_data = extract_song_info(song)
+        filtered_songs.append(filtered_song_data)
+    return filtered_songs
+
+
+def get_playlist_id_by_number(playlists_data, selected_number):
+    for index, playlist in enumerate(playlists_data):
+        if index + 1 == selected_number:
+            # Match found, return the playlist id
+            return playlist.get('id')
+
+    # Return None if no match is found
+    return None
+
+
 @app.route('/user', methods=['POST'])
 def user():
     selected_index = int(request.form.get('selected_index'))
 
-    global playlists_data
-    if playlists_data and 'items' in playlists_data and 0 <= selected_index < len(playlists_data['items']):
-        selected_playlist = playlists_data['items'][selected_index]
-        playlist_id = selected_playlist['id']
+    playlist_id = get_playlist_id_by_number(playlists_data, selected_index)
+
+    if playlist_id:
+        
+        print(f"Selected Index: {selected_index}")
+        print(f"Extracted Playlist ID: {playlist_id}")
 
         response = get(API_BASE_URL + 'me', headers={'Authorization': f"Bearer {session['access_token']}"})
         user_profile = response.json()
@@ -128,7 +184,7 @@ def user():
             profile_picture_url = user_profile['images'][0]['url'] if user_profile['images'] else None
 
             if check_if_user_exist(username) == 0:
-                user_data = create_user(username, email, profile_picture_url, get_playlist_tracks(playlist_id))
+                user_data = create_user(username, email, username, profile_picture_url, clear_songs_data(playlist_id))
                 create_new_item(user_data)
                 return jsonify({"message": "User created successfully."})
             else:
@@ -136,8 +192,10 @@ def user():
         else:
             return jsonify({"error": "User info not found in the response."})
     else:
+        print("No playlist selected.")
         return jsonify({"error": "No playlist selected."})
 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
+    

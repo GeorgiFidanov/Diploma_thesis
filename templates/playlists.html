@@ -9,8 +9,16 @@
     <h2>Available Playlists</h2>
     
     <form method="post" action="/user">
-        <label for="selected_index">Enter playlist index:</label>
-        <input type="number" name="selected_index" required>
+        <label for="selected_index">Select a playlist:</label>
+        <select name="selected_index" required>
+            {% if filtered_playlists %}
+                {% for playlist in filtered_playlists %}
+                    <option value="{{ loop.index0 }}">{{ playlist['name'] }}</option>
+                {% endfor %}
+            {% else %}
+                <option value="" disabled>No playlists available</option>
+            {% endif %}
+        </select>       
         <br>
         <input type="submit" value="Submit">
     </form>
