@@ -4,7 +4,9 @@ from requests import post, get
 from urllib.parse import urlencode
 from flask import Flask, request, redirect, url_for, session, jsonify, render_template
 from datetime import datetime
-from loader import check_if_user_exist, create_new_item, create_user
+from loader import check_if_user_exist, create_new_item, create_user, generate_uuid
+from AI_part import generate_recommendations
+
 
 load_dotenv()
 client_id = os.getenv("CLIENT_ID")
@@ -128,17 +130,47 @@ def get_playlist_tracks(playlist_id):
         return jsonify({"error": "Unable to fetch playlist tracks"}), response.status_code
 
 
+def get_music_features_from_track_id(track_id):
+    response = get(API_BASE_URL + f'audio-features/{track_id}', 
+                   headers={'Authorization': f"Bearer {session['access_token']}"})
+
+    # parse the JSON response
+    audio_features = response.json()
+
+    filtered_audio_features = {
+        "acousticness": audio_features['acousticness'],
+        "danceability": audio_features['danceability'],
+        "energy": audio_features['energy'],
+        "instrumentalness": audio_features['instrumentalness'],
+        # This is the key the track is in. Integers map to pitches using standard Pitch Class notation.
+        "key": audio_features['key'],
+        "liveness": audio_features['liveness'],
+        "loudness": audio_features['loudness'],
+        "speechiness": audio_features['speechiness'],
+        "tempo": audio_features['tempo'],
+        "valence": audio_features['valence']
+    }
+
+    return filtered_audio_features
+
+
 def extract_song_info(song_data):
-    # Extracting relevant information
+    audio_info = get_music_features_from_track_id(song_data['track']['id'])
     song_info = {
-        "name": song_data.get("name"),
-        "album_name": song_data.get("album", {}).get("name"),
-        "artist_name": song_data.get("artists", [{}])[0].get("name"),
-        "danceability": song_data.get("danceability"),
-        "energy": song_data.get("energy"),
-        "key": song_data.get("key"),
-        "tempo": song_data.get("tempo"),
-        "external_url": song_data.get("external_urls", {}).get("spotify")
+        "name": song_data['track']['name'],
+        "album_name": song_data['track']['album']['name'],
+        "artist_name": song_data['track']['artists'][0]['name'],
+        "external_url": song_data['track']['external_urls']['spotify'],
+        "acousticness": audio_info['acousticness'],
+        "danceability": audio_info['danceability'],
+        "energy": audio_info['energy'],
+        "instrumentalness": audio_info['instrumentalness'],
+        "key": audio_info['key'],
+        "liveness": audio_info['liveness'],
+        "loudness": audio_info['loudness'],
+        "speechiness": audio_info['speechiness'],
+        "tempo": audio_info['tempo'],
+        "valence": audio_info['valence']
     }
 
     return song_info
@@ -147,7 +179,7 @@ def extract_song_info(song_data):
 def clear_songs_data(playlist_id):
     songs_data = get_playlist_tracks(playlist_id)
     filtered_songs = []
-    for song in songs_data:
+    for song in songs_data['items']:
         filtered_song_data = extract_song_info(song)
         filtered_songs.append(filtered_song_data)
     return filtered_songs
@@ -155,7 +187,7 @@ def clear_songs_data(playlist_id):
 
 def get_playlist_id_by_number(playlists_data, selected_number):
     for index, playlist in enumerate(playlists_data):
-        if index + 1 == selected_number:
+        if index == selected_number:
             # Match found, return the playlist id
             return playlist.get('id')
 
@@ -184,9 +216,11 @@ def user():
             profile_picture_url = user_profile['images'][0]['url'] if user_profile['images'] else None
 
             if check_if_user_exist(username) == 0:
-                user_data = create_user(username, email, username, profile_picture_url, clear_songs_data(playlist_id))
+                user_data = create_user(generate_uuid(), email, username, profile_picture_url, clear_songs_data(playlist_id))
                 create_new_item(user_data)
-                return jsonify({"message": "User created successfully."})
+                # return jsonify({"message": "User created successfully."})
+                finale = generate_recommendations(user_data['playlist'])
+                return jsonify(finale)
             else:
                 raise RuntimeError("User already exists.")
         else:

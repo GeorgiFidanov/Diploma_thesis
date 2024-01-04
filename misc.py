@@ -1,7 +1,13 @@
 import ast
+import json
 
 
-#30 songs will be max
+def write_response_to_file(response, filename):
+   with open(filename, 'w') as f:
+       json.dump(response, f)
+
+
+# 30 songs will be max
 def read_songs_from_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.read()
