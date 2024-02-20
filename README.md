@@ -1,32 +1,51 @@
 # Diploma_thesis
 Diploma thesis for TUES 24'
 
-# Flask Spotify Authentication and Cosmos DB Integration
+# Reflex app with Spotify Authentication, Cosmos DB Integration, OpenAI response generation and LOCATION_API_KEY requests 
 
-This project demonstrates the integration of Spotify authentication with a Flask web application and storage of user data in Azure Cosmos DB.
+This project demonstrates the AI's possibilities to interact with the user and the Spotify API.
 
 
 # Endpoints
 
- -   /: Home page with a link to initiate Spotify login.
- -   /login: Redirects to Spotify for user authentication.
- -   /callback: Spotify callback to handle authorization code and store user tokens.
+ -   / Home page with a link to initiate Spotify login.
+ -   /features: Displays the features of the app.
+ -   /location_search: Retrieves and displays events near the user location.
  -   /playlists: Retrieves and displays user playlists.
- -   /refresh-token: Refreshes the Spotify access token.
- -   /user: Handles user selection of a playlist, creates a new user profile, and stores it in Cosmos DB.
+ -   /new_playlist: Creates a new playlist based on the user's selection and input.
+ -   /previous_conversations: Retrieves and displays previous conversations with the user.
 
 ## Introduction
-The app will be accessible at http://localhost:5000.
+The app will be accessible at http://localhost:1234.
 
 ## Features
 
 -   User authentication via Spotify.
 -   Retrieving user playlists and storing them in Cosmos DB.
--   Checking for existing users in Cosmos DB before creating new profiles.
+-   Finds events near user.
+-   Retrieving previous conversations with the user.
+-   Creating a new playlist based on user input.
+
 
 ## Usage
 Install dependencies:
 - pip install -r requirements.txt
 
+Find keys and secrets and store them in a local .env file
+- CLIENT_ID = ''
+- CLIENT_SECRET = ''
+- AccountEndpoint = ''
+- AccountKey = ''
+- DatabaseName = ''
+- ContainerName = ''
+- OpenAiKey = ''
+- LOCATION_API_KEY = ''
+
+Create a Spotify app at 'https://developer.spotify.com/dashboard'
+- set the redirect URI to http://localhost:1234/
+
+Init the Reflex files
+- reflex init
+
 Run the application:
-- python run.py
+- reflex run

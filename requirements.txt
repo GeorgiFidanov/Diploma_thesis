@@ -1,5 +1,6 @@
-Flask~=2.2.2
-requests~=2.29.0
+requests~=2.31.0
 python-dotenv~=1.0.0
 azure-cosmos
 openai~=1.6.1
+reflex==0.4.0
+spotipy~=2.23.0
