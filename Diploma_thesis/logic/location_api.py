@@ -21,8 +21,18 @@ def get_location_api_responce(city_name):
     }
 
     response = get(url, headers=headers, params=querystring)
-    response_json = response.json()
-    return response_json
+    if response.status_code == 200:
+        try:
+            response_json = response.json()
+            return response_json
+        except ValueError:
+            # Handle the case where the response is not valid JSON
+            print("Error: Response is not valid JSON.")
+            return None
+    else:
+        # Handle the case where the response status code is not 200
+        print(f"Error: Request failed with status code {response.status_code}.")
+        return None
 
 
 def find_artist_location(json_response, artist_name):

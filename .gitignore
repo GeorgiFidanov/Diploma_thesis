@@ -140,7 +140,6 @@ __pycache__/
 
 __pypackages__/
 
-
 build/
 
 celerybeat-schedule
@@ -189,8 +188,6 @@ pip-delete-this-directory.txt
 
 pip-log.txt
 
-temp.txt
-
 pip-wheel-metadata/
 
 profile_default/
@@ -200,6 +197,8 @@ sdist/
 share/python-wheels/
 
 target/
+
+temp.txt
 
 var/
 

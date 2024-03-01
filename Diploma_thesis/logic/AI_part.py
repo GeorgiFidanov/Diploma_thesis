@@ -11,7 +11,8 @@ openai.api_key = OpenAiKey
 
 def generate_recommendations(user_id, song_infos, playlist_name, user_input):
     """Generates a new playlist based on the features given by a user.
-    If a user doesn't provide a name for the playlist, generates one."""
+    If a user doesn't provide a name for the playlist, generates one.
+    Returns a list of songs which are be added to the playlist."""
 
     # Divide the songs into batches
     batch_size = 10

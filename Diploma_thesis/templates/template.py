@@ -1,10 +1,5 @@
-"""Common templates used between pages in the app."""
-
-from __future__ import annotations
-
 from Diploma_thesis import styles
-from Diploma_thesis.components.sidebar import sidebar
-from typing import Callable
+from typing import Callable, Union, List
 
 import reflex as rx
 
@@ -16,6 +11,14 @@ default_meta = [
     },
 ]
 
+def light_button() -> rx.Component:
+    """A light switch button."""
+    return rx.chakra.color_mode_button(
+        rx.chakra.color_mode_icon(),
+        color_scheme="none",
+        _dark={"color": "white"},
+        _light={"color": "black"},
+    )
 
 def menu_button() -> rx.Component:
     from reflex.page import get_decorated_pages
@@ -38,54 +41,26 @@ def menu_button() -> rx.Component:
                 ],
                 rx.chakra.menu_divider(),
                 rx.chakra.menu_item(
-                    rx.link("About", href="https://github.com/reflex-dev", width="100%")
+                    rx.link("About", href="https://github.com/GeorgiFidanov", width="100%")
                 ),
                 rx.chakra.menu_item(
-                    rx.link("Contact", href="mailto:founders@reflex.dev", width="100%")
+                    rx.link("Contact", href="mailto:georgi.fidanov05@gmail.com", width="100%")
                 ),
             ),
         ),
-        position="fixed",
-        right="1.5em",
-        top="1.5em",
-        z_index="500",
     )
 
-
 def template(
-    route: str | None = None,
-    title: str | None = None,
-    image: str | None = None,
-    description: str | None = None,
-    meta: str | None = None,
-    script_tags: list[rx.Component] | None = None,
-    on_load: rx.event.EventHandler | list[rx.event.EventHandler] | None = None,
+    route: Union[str, None] = None,
+    title: Union[str, None] = None,
+    image: Union[str, None] = None,
+    description: Union[str, None] = None,
+    meta: Union[str, None] = None,
+    script_tags: Union[List[rx.Component], None] = None,
+    on_load: Union[rx.event.EventHandler, List[rx.event.EventHandler], None] = None,
 ) -> Callable[[Callable[[], rx.Component]], rx.Component]:
-    """The template for each page of the app.
-
-    Args:
-        route: The route to reach the page.
-        title: The title of the page.
-        image: The favicon of the page.
-        description: The description of the page.
-        meta: Additionnal meta to add to the page.
-        on_load: The event handler(s) called when the page loads.
-        script_tags: Scripts to attach to the page.
-
-    Returns:
-        The template with the page content.
-    """
-
+    # Function body remains the same
     def decorator(page_content: Callable[[], rx.Component]) -> rx.Component:
-        """The template for each page of the app.
-
-        Args:
-            page_content: The content of the page.
-
-        Returns:
-            The template with the page content.
-        """
-        # Get the meta tags for the page.
         all_meta = [*default_meta, *(meta or [])]
 
         @rx.page(
@@ -99,17 +74,30 @@ def template(
         )
         def templated_page():
             return rx.hstack(
-                sidebar(),
                 rx.box(
+                    rx.box(
+                        rx.hstack(
+                            menu_button(),
+                            light_button(),  # Place the light button next to the menu button
+                            align_items="center",  # Align items in the header
+                            justify_content="space-between",  # Space between menu and light switch
+                            padding="1em",  # Add some padding around the header
+                        ),
+                        position="fixed",
+                        right="1.5em",
+                        top="1.5em",
+                        z_index="500",
+                    ),
                     rx.box(
                         page_content(),
                         **styles.template_content_style,
+                        margin="auto",  # Center the content
+                        width="80%",  # Adjust the width as needed
                     ),
                     **styles.template_page_style,
                 ),
-                menu_button(),
                 align_items="flex-start",
-                transition="left 0.5s, width 0.5s",
+                transition="left   0.5s, width   0.5s",
                 position="relative",
             )
 

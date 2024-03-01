@@ -37,7 +37,7 @@ def create_user(unique_id, email, user_name, pfp, playlist):
         # '_attachments':  'attachments/',
         'partition_key': unique_id,
         # '_ts': ,  Timestamp
-        'context_counter': 0,  # Will be used in future updates
+        'temporary_data': None,  
         'pfp': pfp,
         'playlist': playlist,
         'context': None
@@ -198,7 +198,7 @@ def get_user_info(user_id, info_type):
 # Example usages
 # new_user=create_user('', '', '', '', '')
 # create_new_item(new_user)
-# delete_user('jojoninof@gmail.com')
+# delete_user('')
 # print_all_user_ids_and_user_names()
 # print_user_details_by_user_id('')
 # get_user_playlist('')

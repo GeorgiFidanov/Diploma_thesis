@@ -21,11 +21,22 @@ client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 
 
-BASE_URI = 'http://localhost:1234/'
 REDIRECT_URI = 'http://localhost:1234/'
 AUTH_URL = 'https://accounts.spotify.com/authorize'
 TOKEN_URL = 'https://accounts.spotify.com/api/token'
 API_BASE_URL = 'https://api.spotify.com/v1/'
+
+
+def remove_duplicate_playlists(playlists):
+    """Removes any duplicate playlists"""
+    seen_playlists = set()
+    unique_playlists = []
+    for playlist in playlists:
+        playlist_name = playlist['name']
+        if playlist_name not in seen_playlists:
+            unique_playlists.append(playlist)
+            seen_playlists.add(playlist_name)
+    return unique_playlists
 
 
 def token_expired(token_dict) -> None:
@@ -43,18 +54,6 @@ def token_expired(token_dict) -> None:
         print("Error: self.tokens is neither a string nor a dictionary.")
         return
     return tokens_dict['expires_at'] <= time.time()
-
-
-def remove_duplicate_playlists(playlists):
-    """Removes any duplicate playlists"""
-    seen_playlists = set()
-    unique_playlists = []
-    for playlist in playlists:
-        playlist_name = playlist['name']
-        if playlist_name not in seen_playlists:
-            unique_playlists.append(playlist)
-            seen_playlists.add(playlist_name)
-    return unique_playlists
 
 
 class State(rx.State):
@@ -95,8 +94,8 @@ class State(rx.State):
         return auth_url
 
     tokens: str = rx.Cookie("", name='spotify_tokens')
-    user_id: str = ""  # Used in the fields related with DB usage
-    user_spotify_id: str = ""  # Used in requests with the Spotify's api
+    user_id: str = rx.LocalStorage("", name='user_id')  # Used in the fields related with DB usage
+    user_spotify_id: str = rx.LocalStorage("", name='user_spotify_id')  # Used in requests with the Spotify's api
     
     def get_specific_token(self, token):
         """Returns only the authentication token from the cookie"""
@@ -129,8 +128,6 @@ class State(rx.State):
             # Convert expires_in to an integer and add it to the current time
             token_dict['expires_at'] = int(time.time()) + int(expires_in)
         else:
-            # Handle the case where expires_in is None
-            # For example, set a default expiry time or raise an error
             token_dict['expires_at'] = int(time.time()) + 3600  # Default to  1 hour from now
 
         return token_dict
@@ -212,9 +209,25 @@ class State(rx.State):
         if self.app_is_authenticated:
             access_token = self.get_specific_token('access_token')
             return Spotify(auth=access_token)
+        
+        # Redirect to the app authentication URL
+        return rx.redirect(State.spotify_auth_url, external=False)
+
+    def on_page_load(self):
+        """When the index page is first loaded, makes the connection to Spotify authentication page
+        or refreshes the tokens"""
+
+        if not self.app_is_authenticated:
+            if self.callback_code_and_state != (None, None):
+                self.get_tokens_from_callback()
+        else:
+            if token_expired(self.tokens):  
+                self.refresh_auth_token()
 
     def create_playlist(self, playlist_name, songs):
         """"Creates a playlist in the user's Spotify library"""
+        if token_expired(self.tokens):  
+            self.refresh_auth_token()
         spotify_instance = self.get_Spotify_instance()
         playlist = spotify_instance.user_playlist_create(user=self.user_spotify_id, name=playlist_name, public=False)
         playlist_id = playlist['id']
@@ -235,17 +248,6 @@ class State(rx.State):
                     print(f"Track '{track_name}' by '{artist_name}' not found.")
 
             return playlist_id
-
-    def on_page_load(self):
-        """When the index page is first loaded, makes the connection to Spotify authentication page
-        or refreshes the tokens"""
-
-        if not self.app_is_authenticated:
-            if self.callback_code_and_state != (None, None):
-                self.get_tokens_from_callback()
-        else:
-            if token_expired(self.tokens):  
-                self.refresh_auth_token()
 
     all_playlists = []
 
@@ -272,8 +274,8 @@ class State(rx.State):
             # Handle any exceptions that occur during file writing
             print(f"An error occurred while saving to 'temp.txt': {e}")
             return None
-
-    def playlists(self):
+        
+    def filter_playlists_by_id_and_name(self):
         """Extracts only the ids and names for each playlist"""
         self.all_playlists = remove_duplicate_playlists(self.all_playlists)
         filtered_playlists = [{'id': playlist['id'], 'name': playlist['name']} for playlist in self.all_playlists]
@@ -281,6 +283,10 @@ class State(rx.State):
 
     def get_playlist_tracks(self, spotify_playlist_id):
         """Gets all songs name from playlist"""
+
+        if token_expired(self.tokens):  
+            self.refresh_auth_token()
+
         access_token = self.get_specific_token('access_token')
         response = get(API_BASE_URL + f'playlists/{spotify_playlist_id}/tracks',
                        headers={'Authorization': f"Bearer {access_token}"})
@@ -292,8 +298,12 @@ class State(rx.State):
             # Raises an exception when the API call fails
             raise RuntimeError(f"Unable to fetch playlist tracks: {response.content}")
 
-    def get_audio_features_features_from_track_id(self, track_id):
+    def get_audio_features_from_track_id(self, track_id):
         """Gets specific audio features from a song"""
+
+        if token_expired(self.tokens):  
+            self.refresh_auth_token()
+
         access_token = self.get_specific_token('access_token')
         response = get(API_BASE_URL + f'audio-features/{track_id}',
                        headers={'Authorization': f"Bearer {access_token}"})
@@ -317,7 +327,7 @@ class State(rx.State):
 
     def extract_song_info(self, song_data):
         """Gets only needed the features from a song"""
-        audio_info = self.get_audio_features_features_from_track_id(song_data['track']['id'])
+        audio_info = self.get_audio_features_from_track_id(song_data['track']['id'])
         song_info = {
             "name": song_data['track']['name'],
             "album_name": song_data['track']['album']['name'],
@@ -420,15 +430,18 @@ class State(rx.State):
         else:
             return RuntimeError({"error": "No playlist selected."})
 
-    def function_train(self, where):
+    def correct_behaviour_sequence(self, where):
         """Sequence of functions needed to excecuted to ensure correct behaviour"""
+        if not self.app_is_authenticated:
+            return rx.redirect(self.spotify_auth_url, external=False) 
         if token_expired(self.tokens):  
             self.refresh_auth_token()
         self.fetch_all_user_playlists()
-        clean_playlists = self.playlists()
+        clean_playlists = self.filter_playlists_by_id_and_name()
         self.save_playlists_data(clean_playlists)
         self.create_user_in_db()
-        return rx.redirect(where)
+        if where != '':
+            return rx.redirect(where)
 
     def get_user_previous_conversations(self):
         """Sequence of functions needed to display all previous AI playlists"""

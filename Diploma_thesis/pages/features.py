@@ -3,7 +3,7 @@ import reflex as rx
 from Diploma_thesis.logic.state import State
 
 
-@template(route="/features", title="Features", image="/mlqko.jpg")
+@template(route="/features", title="Features", image="/mlqko.jpg", on_load=State.correct_behaviour_sequence(''))
 def features() -> rx.Component:
     """Creates the features page"""
     return rx.vstack(

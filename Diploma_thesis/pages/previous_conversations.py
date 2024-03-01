@@ -69,7 +69,7 @@ def create_dropdown_conditional():
 
 def back_to_playlist_button():
     """Returns the button that if pressed redirects to /playlists and loads the correct data"""
-    return rx.button("Back to playlist", on_click=State.function_train('/playlists'))
+    return rx.button("Back to playlist", on_click=State.correct_behaviour_sequence('/playlists'))
 
 
 @template(route="/previous_conversations", title="Previous Conversations", image="/mlqko.jpg")

@@ -41,7 +41,7 @@ def index() -> rx.Component:
                     rx.box(
                         rx.button(
                             "To app",
-                            on_click=State.function_train('/features') 
+                            on_click=State.correct_behaviour_sequence('/features')
                             )  # Returns this box if the condition is mrt
                     ),
                     authenticate_alert()  # Returns this alert if the condition isn't met

@@ -77,13 +77,17 @@ component_styles = {
         "color": "black",
     },
 
-    rx.button: {
-        "background-color": "black",
-        "color": "white",
-        "border": "none",
-        "padding": "0.5rem 1rem",
-        "margin": "0.5rem",
-        "border-radius": "0.25rem",
+     rx.box: {
+        "padding": "2em",  # Increase padding to create more space around the content
+        "margin": "0 auto",  # Center the box horizontally
+        "max-width": "90vw",  # Limit the maximum width to make the website feel wider
+        "border-radius": "1rem",
+        "border": "1px solid black",
+        "box-shadow": "0  0  10px  0 rgba(0,  0,  0,  0.2)",
+        "display": "flex",  # Use flexbox to center content
+        "flex-direction": "column",  # Stack children vertically
+        "align-items": "center",  # Center children horizontally
+        "justify-content": "center",  # Center children vertically
     },
     
     rx.box: {
@@ -92,5 +96,27 @@ component_styles = {
         "border-radius": "1rem",
         "border": "1px solid black",
         "box-shadow": "0 0 10px 0 rgba(0, 0, 0, 0.2)",
-    }
+    },
+
+    rx.hstack: {
+        "padding": "2em",  # Increase padding to create more space around the content
+        "margin": "0 auto",  # Center the box horizontally
+        "max-width": "90vw",  # Limit the maximum width to make the website feel wider
+        "border-radius": "1rem",
+        "border": "1px solid black",
+        "box-shadow": "0  0  10px  0 rgba(0,  0,  0,  0.2)",
+        "display": "flex",  # Use flexbox to center content
+        "flex-direction": "column",  # Stack children vertically
+        "align-items": "center",  # Center children horizontally
+        "justify-content": "center",  # Center children vertically
+    },
+
+    # Specific styles for vertical stacks
+    rx.vstack: {
+        "flex-direction": "column",  # Stack children vertically
+        "align-items": "center",  # Center children horizontally
+        "justify-content": "center",  # Center children vertically
+        "gap": "1em",  # Add space between items in the stack
+    },
+
 }

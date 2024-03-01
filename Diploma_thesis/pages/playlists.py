@@ -102,7 +102,7 @@ def previous_conversations_button():
     return rx.button("Previous Conversations", on_click=State.get_user_previous_conversations)
 
 
-@template(route="/playlists", title="Playlists Selection", image="/mlqko.jpg")
+@template(route="/playlists", title="Playlists Selection", image="/mlqko.jpg", on_load=State.correct_behaviour_sequence(''))
 def playlists():
     """Creates the Playlists Selection page"""
     return rx.hstack(init_button(), dropdown_menu(), previous_conversations_button())
