@@ -1,7 +1,7 @@
 # Diploma_thesis
 Diploma thesis for TUES 24'
 
-# Reflex app with Spotify Authentication, Cosmos DB Integration, OpenAI response generation and LOCATION_API_KEY requests 
+# Reflex app with Spotify Authentication, Cosmos DB Integration, OpenAI response generation and Location API requests 
 
 This project demonstrates the AI's possibilities to interact with the user and the Spotify API.
 
